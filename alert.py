@@ -132,6 +132,41 @@ def send_all(text_html, text_plain, urgent=True, config=None):
     return sent
  
  
+def send_burst(text_html, text_plain, config=None, sleeper=time.sleep):
+    """Ring several times in a row so one missed buzz doesn't mean a missed alert.
+ 
+    A single workflow run fires the whole burst, so all of it lands within a couple
+    of minutes rather than being spread over the 5-minute cron.
+ 
+    Pushover in emergency mode already repeats until you acknowledge, so it only
+    gets the first message of the burst -- no point stacking sirens.
+    """
+    config = config or {}
+    count = max(1, int(config.get("burst_count", 5)))
+    gap = max(0, int(config.get("burst_gap_seconds", 30)))
+    channels = []
+ 
+    for i in range(1, count + 1):
+        # A counter makes each message unique, so iOS won't silently collapse
+        # them into one grouped notification with a single sound.
+        suffix_html = f"\n\n<i>ring {i} of {count}</i>" if count > 1 else ""
+        suffix_plain = f"\n\nring {i} of {count}" if count > 1 else ""
+ 
+        if i == 1:
+            channels = send_all(text_html + suffix_html,
+                                text_plain + suffix_plain, True, config)
+        else:
+            try:
+                send_telegram(text_html + suffix_html, urgent=True)
+            except Exception as e:
+                print(f"warning: burst {i}: {e}", file=sys.stderr)
+ 
+        if i < count and gap:
+            sleeper(gap)
+ 
+    return channels, count
+ 
+ 
 # ---------------------------------------------------------------- core
  
 def evaluate(price, config, state):
@@ -213,10 +248,13 @@ def run_once(config, forced_price=None, dry_run=False):
  
     for html, plain in messages:
         if dry_run:
-            print("--- would send ---")
+            n = max(1, int(config.get("burst_count", 5)))
+            gap = int(config.get("burst_gap_seconds", 30))
+            print(f"--- would send {n}x, {gap}s apart ---")
             print(plain)
         else:
-            print("sent via: " + ", ".join(send_all(html, plain, True, config)))
+            channels, n = send_burst(html, plain, config)
+            print(f"rang {n}x via: " + ", ".join(channels))
     return price, messages
  
  
@@ -234,13 +272,13 @@ def main():
         sys.exit(f"Missing or invalid {CONFIG_PATH}")
  
     if args.test:
-        sent = send_all(
+        channels, n = send_burst(
             "✅ <b>USDT/INR alarm is wired up.</b>\n\n"
             "If this woke you, your sound settings are right.",
             "USDT/INR alarm is wired up.\n\n"
             "If this woke you, your sound settings are right.",
-            urgent=True, config=config)
-        print("Test sent via: " + ", ".join(sent))
+            config=config)
+        print(f"Test rang {n}x via: " + ", ".join(channels))
         return
  
     interval = args.interval or int(config.get("poll_seconds", 300))
@@ -258,4 +296,3 @@ def main():
  
 if __name__ == "__main__":
     main()
- 
