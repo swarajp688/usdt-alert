@@ -17,7 +17,7 @@
     {
       "id": "sell-high",
       "direction": "above",
-      "price": 92.0,
+      "price": 98,
       "note": "USDT premium is up - consider redeeming from Earn and selling.",
       "enabled": true
     },
