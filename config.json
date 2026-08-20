@@ -12,14 +12,14 @@
     {
       "id": "sell-high",
       "direction": "above",
-      "price": 92,
+      "price": 98.1,
       "note": "USDT premium is up - consider redeeming from Earn and selling.",
       "enabled": true
     },
     {
       "id": "buy-dip",
       "direction": "below",
-      "price": 87.5,
+      "price": 98,
       "note": "USDT is cheap - good level to add.",
       "enabled": true
     }
