@@ -1,14 +1,14 @@
 {
   "sell-high": {
-    "triggered": true,
-    "repeats": 3
+    "triggered": false,
+    "repeats": 0
   },
   "buy-dip": {
     "triggered": false,
     "repeats": 0
   },
   "_last": {
-    "price": 98.71,
-    "checked_at": "2026-08-20T21:34:35+05:30"
+    "price": 98.39,
+    "checked_at": "2026-08-20T22:19:00+05:30"
   }
 }
