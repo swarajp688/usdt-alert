@@ -1,0 +1,47 @@
+# Save this file in your repo as:  .github/workflows/usdt-alert.yml
+#
+# IMPORTANT: make the repository PUBLIC. GitHub Actions is unlimited and free on
+# public repos; private repos only get 2,000 minutes/month, which a 5-minute cron
+# burns through in about a week. Your bot token lives in encrypted Secrets, never
+# in a file, so a public repo is still safe.
+ 
+name: USDT/INR price alarm
+ 
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # every 5 minutes (GitHub's minimum)
+  workflow_dispatch:         # lets you run it manually from the Actions tab
+ 
+permissions:
+  contents: write            # needed to save state.json between runs
+ 
+concurrency:
+  group: usdt-alert
+  cancel-in-progress: false
+ 
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+ 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+ 
+      - name: Check price and alert
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
+          PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
+        run: python alert.py
+ 
+      - name: Remember what already fired
+        run: |
+          git config user.name  "usdt-alert-bot"
+          git config user.email "actions@github.com"
+          git add state.json
+          git diff --staged --quiet || git commit -m "state [skip ci]"
+          git push
+ 
