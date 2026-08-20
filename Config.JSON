@@ -1,0 +1,27 @@
+{
+  "market": "USDTINR",
+  "poll_seconds": 300,
+  "hysteresis_inr": 0.1,
+  "repeat_until_rearm": true,
+  "max_repeats": 3,
+  "pushover_emergency": true,
+  "pushover_retry_seconds": 60,
+  "pushover_expire_seconds": 1800,
+  "pushover_sound": "persistent",
+  "rules": [
+    {
+      "id": "sell-high",
+      "direction": "above",
+      "price": 92,
+      "note": "USDT premium is up - consider redeeming from Earn and selling.",
+      "enabled": true
+    },
+    {
+      "id": "buy-dip",
+      "direction": "below",
+      "price": 87.5,
+      "note": "USDT is cheap - good level to add.",
+      "enabled": true
+    }
+  ]
+}
